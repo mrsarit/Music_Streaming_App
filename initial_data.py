@@ -9,4 +9,7 @@ with app.app_context():
     db.session.add(creator)
     user = Role(id='user', name='User', description='User description')
     db.session.add(user)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        pass

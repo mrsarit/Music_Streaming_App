@@ -23,7 +23,7 @@ class User(db.Model):
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
     roles = db.relationship('Role', secondary='roles_users',
                          backref=db.backref('users', lazy='dynamic'))
-    music_resource = db.relationship('Song', backref='creator')
+    #music_resource = db.relationship('Song', backref='creator')
 class Role(db.Model):
     id = db.Column(db.String, primary_key=True)
     name = db.Column(db.String(80), unique=True)
@@ -32,9 +32,10 @@ class Song(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     lyrics = db.Column(db.String, nullable=False)
-    duration = db.Column(db.Integer, primary_key=True)
-    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    registration_date = db.Column(db.DateTime, default=datetime.utcnow)
+    duration = db.Column(db.Integer, nullable=False)
+    #creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
     is_approved = db.Column(db.Boolean(), default=False)
 class Album(db.Model): 
     id = db.Column(db.String, primary_key=True)
