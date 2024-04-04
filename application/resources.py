@@ -1,4 +1,6 @@
 from flask_restful import Resource, Api, reqparse, marshal_with, fields
+from application.sec import datastore
+from flask_security import hash_password
 from .models import Song, db
 api = Api(prefix='/api')
 
@@ -27,4 +29,24 @@ class SongResource(Resource):
         db.session.commit()
         return {"message": "Song added Successfully"}
 
+parser_regis = reqparse.RequestParser()
+parser_regis.add_argument('email', type=str, help='Email Id of user')
+parser_regis.add_argument('password', type=str, help='Password of User')
+parser_regis.add_argument('roles', type=str, help='Role of user')
+parser_regis.add_argument('username', type=str, help='user name')
+
+class Registration(Resource):
+    def post(self):
+        args = parser_regis.parse_args()
+        if not datastore.find_user(email=args.email):
+            if args.roles == 'creator':
+                datastore.create_user(email=args.email, password=hash_password(args.password), roles=[args.roles], active=False, username = args.username)
+            else:
+                datastore.create_user(email=args.email, password=hash_password(args.password), roles=[args.roles], username = args.username)    
+        db.session.commit()
+
+        return {"message": "User added Successfully"}
+
+
 api.add_resource(SongResource, '/get_song')
+api.add_resource(Registration, '/registration')
