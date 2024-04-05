@@ -36,4 +36,4 @@ def user_login():
     if check_password_hash(user.password, data.get('password')):
         return jsonify({"token" : user.get_auth_token(), "email" : user.email, "role" : user.roles[0].name})
     else: 
-        return jsonify({"message" : "Wrong Password"})
+        return jsonify({"message" : "Wrong Password"}), 400
