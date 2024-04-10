@@ -17,6 +17,7 @@ export default{
     <input type="password" class="form-control" id="user_password" 
     v-model='cred.password'>
     <button class="btn btn-primary mt-2" @click='register' > Register </button>
+    <router-link class="nav-link" to="/login"> Have Account? Login </router-link>
   </div>
   </div>`,
   data(){
@@ -38,7 +39,7 @@ export default{
   },
   methods: {
     async register(){
-        const res = await fetch('api/registration',{
+        const res = await fetch('/api/registration',{
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

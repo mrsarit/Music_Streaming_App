@@ -1,30 +1,41 @@
-from flask_restful import Resource, Api, reqparse, marshal_with, fields
+from flask_restful import Resource, Api, reqparse, marshal, fields
 from application.sec import datastore
+from sqlalchemy import or_
 from werkzeug.security import generate_password_hash
 from .models import Song, db
+from flask_security import auth_required, roles_required, current_user
 api = Api(prefix='/api')
 
 parser = reqparse.RequestParser()
 parser.add_argument('name', type=str, help='Name of the Song')
 parser.add_argument('lyrics', type=str, help='lyrics of the Song')
 parser.add_argument('duration', type=int, help='duration of the Song in mins')
+class Creator(fields.Raw):
+    def format(self, user):
+        return user.email
+
 
 songs_field = {
+  "id" : fields.Integer,
   "name": fields.String,
   "lyrics": fields.String,
-  "duration": fields.Integer
+  "duration": fields.Integer,
+  'creator': Creator
 }
 
 class SongResource(Resource):
-    @marshal_with(songs_field)
+    @auth_required("token")
     def get(self):
-        all_songs = Song.query.all()
-        if len(all_songs)<1:
-            return {"message": "No songs found"}, 404
-        return all_songs
+        song_resource = Song.query.all()
+        if len(song_resource) > 0:
+            return marshal(song_resource, songs_field)
+        else:
+            return {"message": "No Resourse Found"}, 404
+    @auth_required("token")
+    @roles_required("creator")
     def post(self):
         args = parser.parse_args()
-        song_resource = Song(**args)
+        song_resource = Song(name=args.get("name"), lyrics=args.get("lyrics"),duration=args.get("duration"),creator_id=current_user.id)
         db.session.add(song_resource)
         db.session.commit()
         return {"message": "Song added Successfully"}

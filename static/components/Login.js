@@ -10,6 +10,7 @@ export default{
     <input type="password" class="form-control" id="user_password" 
     v-model='cred.password'>
     <button class="btn btn-primary mt-2" @click='login' > Login </button>
+    <router-link class="nav-link" to="/register"> Create Account </router-link>
   </div>
   </div>`,
   data(){
