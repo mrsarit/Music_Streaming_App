@@ -23,7 +23,7 @@ class User(db.Model, UserMixin):
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
     roles = db.relationship('Role', secondary='roles_users',
                          backref=db.backref('users', lazy='dynamic'))
-    music_resource = db.relationship('Song', backref='all_songs')
+    music_resource = db.relationship('Song', backref='creator')
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
@@ -37,8 +37,10 @@ class Song(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
     is_approved = db.Column(db.Boolean(), default=False)
+    music_file = db.Column(db.String, nullable=False)
 class Album(db.Model): 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
     songs = db.relationship('Song', secondary='album_songs',
                          backref=db.backref('album', lazy='dynamic'))
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

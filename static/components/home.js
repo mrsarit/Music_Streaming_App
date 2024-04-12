@@ -7,7 +7,7 @@ export default{
     <UserHome v-if="userRole=='user'"/>
     <AdminHome v-if="userRole=='admin'"/>
     <CreatorHome v-if="userRole=='creator'"/>
-    <SongAll v-for="(song, index) in song" :key="index" :song="song"/>
+    <SongAll/>
     </div>`,
     data() {
     return {
