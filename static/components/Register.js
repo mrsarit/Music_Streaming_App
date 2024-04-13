@@ -32,8 +32,6 @@ export default{
       options: [
         { name: 'User', id: 'user' },
         { name: 'Creator', id: 'creator' },
-        { name: 'Admin', id: 'admin' },
-        // Add more options as needed
       ],
     }
   },

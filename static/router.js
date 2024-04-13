@@ -5,15 +5,18 @@ import Users from "./components/Users.js"
 import AddSong from "./components/AddSong.js"
 import MusicPlayer from "./components/MusicPlayer.js"
 import PlayDirect from "./components/PlayDirect.js"
+import UserAlbums from "./components/UserAlbums.js"
+import Search from "./components/Search.js"
 const routes = [
     // {path:'/', component: home},
     {path:'/login', component: Login, name: 'Login'},
     {path:'/register', component: Register, name: 'Register'},
     {path: '/users', component: Users},
-    // {path: '/song-add', component: Songadd},
     {path: '/song-add', component: AddSong},
     {path: '/api/play_song/:id', component: MusicPlayer},
-    {path: '/', component: PlayDirect,}
+    {path: '/', component: PlayDirect,},
+    {path: '/my-albums', component: UserAlbums,},
+    {path: '/search', component: Search,}
 
 ]
 export default new VueRouter({
