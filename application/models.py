@@ -38,9 +38,28 @@ class Song(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
     is_approved = db.Column(db.Boolean(), default=False)
     music_file = db.Column(db.String, nullable=False)
+    album_id = db.Column(db.Integer, db.ForeignKey('song_album.id'), nullable=False)
 class Album(db.Model): 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
     songs = db.relationship('Song', secondary='album_songs',
                          backref=db.backref('album', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+class Rating(db.Model):
+    __tablename__ = 'ratings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    song_id = db.Column(db.Integer, db.ForeignKey('song.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"<Rating {self.id}>"
+class SongAlbum(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    genre = db.Column(db.String(255))
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    songs = db.relationship('Song', backref='song_album', lazy=True)
+

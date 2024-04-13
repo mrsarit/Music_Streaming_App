@@ -3,11 +3,11 @@ export default {
     <div>
       <div class="row">
         <div class="col-md-6">
-          <h1>User Albums</h1>
+          <h1>Your Playlist</h1>
           <ul>
             <li v-for="album in albums" :key="album.id">
               <h2>{{ album.name }}</h2>
-              <button @click="deleteAlbum(album.id)">Delete Album</button>
+              <button @click="deleteAlbum(album.id)">Delete Playlist</button>
               <ul>
                 <li v-for="song in album.songs" :key="song.id">
                   {{ song.name }} 
@@ -22,9 +22,20 @@ export default {
           <div class="mb-3 p-5 bg-light">
             <div v-if="title"> Title: {{title}}</div>
             <div v-if="creator"> Creator: {{creator}}</div>
-            <div v-if="album_name"> Album: {{album_name}}</div>
+            <div v-if="album_name"> Playlist: {{album_name}}</div>
+            <div v-if="lyrics"> Lyrics: {{ lyrics }}</div>
             <audio ref="audioPlayer" controls></audio>
           </div>
+          <div class="row">
+      <div class="col-md-6">
+        <h2>Create Playlist</h2>
+        <form @submit.prevent="createAlbum">
+          <label for="albumName">Playlist Name:</label>
+          <input type="text" id="albumName" v-model="albumName" required>
+          <button type="submit">Create Playlist</button>
+        </form>
+      </div>
+    </div>
         </div>
       </div>
     </div>`,
@@ -33,7 +44,9 @@ export default {
       albums: [],
       title: null,
       creator: null,
-      album_name: null
+      album_name: null,
+      lyrics: null,
+      albumName: null
     };
   },
   mounted() {
@@ -93,9 +106,36 @@ export default {
             const data1 = await response1.json()
             this.title = data1.name
             this.creator = data1.creator
+            this.lyrics = data1.lyrics
           } else {
             throw new Error('Failed to play song');
           }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async createAlbum() {
+      try {
+        const response = await fetch('/api/albums', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authentication-Token': localStorage.getItem('auth-token')
+          },
+          body: JSON.stringify({
+            name: this.albumName,
+            songs: this.selectedSongs
+          })
+        });
+        if (response.ok) {
+          this.$router.go(0)
+          alert('Album created successfully');
+          this.albumName = '';
+          this.selectedSongs = [];
+          
+        } else {
+          throw new Error('Failed to create album');
         }
       } catch (error) {
         console.error(error);

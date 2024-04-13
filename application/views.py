@@ -7,11 +7,12 @@ from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 from .models import *
 from datetime import datetime
-from sqlalchemy import text
+from sqlalchemy import desc, text
 from sqlalchemy import or_
+from sqlalchemy import func
 
 
-@app.get('/')
+@app.route('/')
 def home():
     return render_template("index.html")
 
@@ -42,6 +43,8 @@ def user_login():
     if not user:
         return jsonify({"message" : "User not found"}), 404
     if check_password_hash(user.password, data.get('password')):
+        if  user.roles[0].name=='creator' and user.active==False:
+            return jsonify({"message" : "Creator not Activated"}), 400
         return jsonify({"token" : user.get_auth_token(), "email" : user.email, "role" : user.roles[0].name})
     else: 
         return jsonify({"message" : "Wrong Password"}), 400
@@ -71,7 +74,8 @@ def upload_file():
    ext_pos = len(split_filename)-1 
    ext = split_filename[ext_pos]
    file.save(f"uploads/{new_filename}.{ext}")
-   song_resource = Song(name=request.form['name'], lyrics=request.form['lyrics'],duration=request.form['duration'],creator_id=current_user.id, music_file=f"uploads/{new_filename}.{ext}")
+   song_resource = Song(name=request.form['name'], lyrics=request.form['lyrics'],duration=request.form['duration'],creator_id=current_user.id, \
+                        music_file=f"uploads/{new_filename}.{ext}", album_id=request.form['selectedAlbumId'])
    db.session.add(song_resource)
    db.session.commit()
    return {"message": "Song added Successfully"}
@@ -100,7 +104,25 @@ def get_song(song_id):
     creator = User.query.get(song.creator_id)
     if not song:
         return jsonify({"message": "Song not found"}), 404
-    return jsonify({'id': song.id, 'name': song.name, 'creator': creator.username})
+
+    # Calculate the average rating for the song
+    average_rating = db.session.query(func.avg(Rating.rating)).filter(Rating.song_id == song_id).scalar()
+
+    # Get the current user's existing rating for the song
+    current_user_rating = None
+    if current_user.is_authenticated:
+        current_user_rating_obj = Rating.query.filter_by(song_id=song_id, user_id=current_user.id).first()
+        if current_user_rating_obj:
+            current_user_rating = current_user_rating_obj.rating
+
+    return jsonify({
+        'id': song.id,
+        'name': song.name,
+        'creator': creator.username,
+        'lyrics': song.lyrics,
+        'average_rating': average_rating or 0,  # Set to 0 if average_rating is None
+        'current_user_rating': current_user_rating
+    })
 
 @app.route('/api/play_song/<int:song_id>')
 @auth_required("token")
@@ -249,3 +271,143 @@ def delete_album(album_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': str(e)}), 500
+@app.route('/api/creator_songs', methods=['GET'])
+@auth_required("token")
+def get_creator_songs():
+    if current_user.has_role('admin'):
+        songs = Song.query.all()
+    elif current_user.has_role('creator'):
+        songs = Song.query.filter_by(creator=current_user).all()
+    serialized_songs = []
+    for song in songs:
+        serialized_songs.append({
+            'id': song.id,
+            'name': song.name,
+            'lyrics': song.lyrics,
+            'duration': song.duration,
+        })
+    return jsonify(serialized_songs)
+@app.route('/api/delete_song/<int:song_id>', methods=['DELETE'])
+@auth_required("token")
+def delete_song( song_id):
+    song = Song.query.get(song_id)
+    if not song:
+        return jsonify({'message': 'Song not found'}), 404
+    if song.creator != current_user:
+        return jsonify({'message': 'Unauthorized'}), 403
+    db.session.delete(song)
+    db.session.commit()
+    return jsonify({'message': 'Song deleted'}), 200
+@app.route('/api/edit_song/<int:song_id>', methods=['PUT'])
+@auth_required("token")
+def edit_song(song_id):
+    song = Song.query.get(song_id)
+    if not song:
+        return jsonify({'error': 'Song not found'}), 404
+    data = request.get_json()
+    song.name = data.get('name', song.name)
+    song.lyrics = data.get('lyrics', song.lyrics)
+    song.duration = data.get('duration', song.duration)
+    db.session.commit()
+
+    return jsonify({'message': 'Song updated successfully'}), 200
+@app.route('/api/rate_song/<int:song_id>/<int:rating>', methods=['POST'])
+@auth_required('token')
+def rate_song(song_id, rating):
+    song = Song.query.filter_by(id=song_id).first()
+    if not song:
+        return jsonify(message='Song not found'), 404
+
+    # Check if the user has already rated the song
+    existing_rating = Rating.query.filter_by(song_id=song_id, user_id=current_user.id).first()
+    if existing_rating:
+        existing_rating.rating = rating
+    else:
+        new_rating = Rating(song_id=song_id, user_id=current_user.id, rating=rating)
+        db.session.add(new_rating)
+    
+    db.session.commit()
+    return jsonify(message='Rating submitted successfully'), 200
+
+@app.route('/api/recently_added_songs')
+@auth_required('token')
+def get_recently_added_songs():
+    songs = Song.query.order_by(Song.updated_at.desc()).limit(5).all()
+    return jsonify([
+        {
+            'id': song.id,
+            'name': song.name,
+            'creator': User.query.get(song.creator_id).username,
+            'lyrics': song.lyrics,
+            'average_rating': db.session.query(func.avg(Rating.rating)).filter(Rating.song_id == song.id).scalar() or 0,
+            'current_user_rating': Rating.query.filter_by(song_id=song.id, user_id=current_user.id).first().rating if Rating.query.filter_by(song_id=song.id, user_id=current_user.id).first() else None
+        } for song in songs
+    ])
+@app.route('/api/top_rated_songs')
+@auth_required('token')
+def get_top_rated_songs():
+    songs = db.session.query(Song, func.avg(Rating.rating).label('average_rating'))\
+            .join(Rating, Song.id == Rating.song_id)\
+            .group_by(Song.id)\
+            .order_by(desc('average_rating'))\
+            .limit(5)\
+            .all()
+    return jsonify([{'id': song[0].id, 'name': song[0].name, 'average_rating': song[1]} for song in songs])
+
+@app.route('/api/add_song_with_album', methods=['POST'])
+@roles_required("creator")
+@auth_required('token')
+def add_song_with_album():
+    data = request.json
+    name = data.get('name')
+    lyrics = data.get('lyrics')
+    duration = data.get('duration')
+    album_name = data.get('albumName')
+
+    if not name or not album_name:
+        return jsonify({"message": "Name and Album are required"}), 400
+
+    album = SongAlbum.query.filter_by(name=album_name).first()
+    if not album:
+        album = SongAlbum(name=album_name)
+        db.session.add(album)
+        db.session.commit()
+
+    song = Song(name=name, lyrics=lyrics, duration=duration, album_id=album.id)
+    db.session.add(song)
+    db.session.commit()
+
+    return jsonify({"message": "Song added successfully"}), 201
+# Create an album
+@app.route('/api/song-albums', methods=['POST'])
+@auth_required("token")
+def create_song_album():
+    data = request.json
+    album_name = data.get('name')
+    
+    # Check if the album name is provided
+    if not album_name:
+        return jsonify({'message': 'Album name is required'}), 400
+    
+    # Check if the album with the same name already exists
+    existing_album = SongAlbum.query.filter_by(name=album_name).first()
+    if existing_album:
+        return jsonify({'message': 'Album with the same name already exists'}), 400
+
+    # Create a new album
+    album = SongAlbum(name=album_name, creator_id=current_user.id)
+    db.session.add(album)
+    db.session.commit()
+    return jsonify({'message': 'Album created successfully'}), 201
+@app.route('/api/get_user_albums')
+@auth_required("token")
+def get_user_song_albums():
+    user_id = current_user.id
+    albums = SongAlbum.query.filter_by(creator_id=user_id).all()
+    album_list = []
+    for album in albums:
+        album_list.append({
+            'id': album.id,
+            'name': album.name,
+        })
+    return jsonify(album_list)

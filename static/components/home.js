@@ -1,13 +1,11 @@
 import UserHome from './UserHome.js'
 import AdminHome from './AdminHome.js'
 import CreatorHome from './CreatorHome.js'
-import SongAll from './SongAll.js'
 export default{
     template: `<div> 
     <UserHome v-if="userRole=='user'"/>
     <AdminHome v-if="userRole=='admin'"/>
     <CreatorHome v-if="userRole=='creator'"/>
-    <SongAll/>
     </div>`,
     data() {
     return {
@@ -20,7 +18,6 @@ export default{
         UserHome,
         AdminHome,
         CreatorHome,
-        SongAll,
     },
     async mounted() {
         const res = await fetch('/api/get_song', {

@@ -14,7 +14,7 @@ export default{
     <p v-else>No results found</p>
     </div>
     <div>
-      <h2>Choose an Album to Add to:</h2>
+      <h2>Choose an Playlist to Add:</h2>
       <select v-model="selectedAlbumId">
         <option v-for="album in albums" :key="album.id" :value="album.id">{{ album.name }}</option>
       </select>

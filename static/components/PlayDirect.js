@@ -13,28 +13,29 @@ export default{
           <div class="mb-3 p-5 bg-light">
           <div v-if="title"> Title: {{title}}</div>
           <div v-if="creator"> Creator: {{creator}}</div>
+          <div v-if="lyrics"> Lyrics: {{lyrics}}</div>
+          <div v-if="average_rating"> Average Rating: {{ average_rating }}</div>
             <audio ref="audioPlayer" controls></audio>
             <div>
               <button @click="playNext">Next</button>
               <button @click="playPrevious">Previous</button>
             </div>
+            <form v-if="song_id" @submit.prevent="rateSong(song_id)">
+                <label for="rating">Rating:</label>
+                <select v-model="selectedRating" id="rating">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+                <button type="submit">Rate</button>
+              </form>
+              <div v-if="lyrics"> Lyrics: {{ lyrics }}</div>
+
           </div>
         </div>
       </div>
-      <div class="row">
-      <div class="col-md-6">
-        <h2>Create Album</h2>
-        <form @submit.prevent="createAlbum">
-          <label for="albumName">Album Name:</label>
-          <input type="text" id="albumName" v-model="albumName" required>
-          <label for="songSelect">Select Songs:</label>
-          <select id="songSelect" v-model="selectedSongs" multiple>
-            <option v-for="song in songs" :key="song.id" :value="song.id">{{ song.name }}</option>
-          </select>
-          <button type="submit">Create Album</button>
-        </form>
-      </div>
-    </div>
     </div>`,
   data() {
     return {
@@ -43,8 +44,12 @@ export default{
       audioPlayer: null,
       title: null,
       creator: null,
+      lyrics: null,
       albumName: '',
-      selectedSongs: []
+      selectedSongs: [],
+      average_rating: null,
+      song_id: null,
+      selectedRating:null,
     };
   },
   methods: {
@@ -87,7 +92,11 @@ export default{
           })
           const data1 = await response1.json()
           this.title = data1.name
+          this.lyrics = data1.lyrics
           this.creator = data1.creator
+          this.average_rating = data1.average_rating
+          this.song_id = data1.id
+          this.selectedRating = data1.current_user_rating
           
           // Find the index of the current song
           this.currentSongIndex = this.songs.findIndex(song => song.id === songId);
@@ -110,32 +119,29 @@ export default{
         this.playSong(previousSongId);
       }
     },
-    async createAlbum() {
+    async rateSong(songId) {
       try {
-        const response = await fetch('/api/albums', {
+        const response = await fetch(`/api/rate_song/${songId}/${this.selectedRating}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authentication-Token': localStorage.getItem('auth-token')
-          },
-          body: JSON.stringify({
-            name: this.albumName,
-            songs: this.selectedSongs
-          })
+          }
         });
+
         if (response.ok) {
-          alert('Album created successfully');
-          this.albumName = '';
-          this.selectedSongs = [];
+          // Update the average rating after successful rating submission
+          this.playSong(songId);
         } else {
-          throw new Error('Failed to create album');
+          throw new Error('Failed to rate song');
         }
       } catch (error) {
         console.error(error);
       }
-    }
+    },
   },
   created() {
     this.fetchSongs();
-  }
+  },
+  
 }

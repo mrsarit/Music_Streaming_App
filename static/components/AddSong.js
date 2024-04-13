@@ -10,7 +10,12 @@ export default {
 
       <label for="duration">Duration:</label>
       <input type="text" id="duration" v-model="formData.duration" required><br><br>
-
+      <div>
+      <h2>Choose an Album to Add:</h2>
+      <select v-model="selectedAlbumId">
+        <option v-for="album in albums" :key="album.id" :value="album.id">{{ album.name }}</option>
+      </select>
+    </div>
       <label for="file">Select File:</label>
       <input type="file" id="file" @change="handleFileUpload" required><br><br>
 
@@ -24,10 +29,13 @@ export default {
         name: '',
         lyrics: '',
         duration: '',
-        file: null
+        file: null,
+        selectedAlbumId: null
       },
       token: localStorage.getItem('auth-token'),
-      message: ''
+      message: '',
+      albums: [],
+      selectedAlbumId: null,
     };
   },
   methods: {
@@ -40,6 +48,7 @@ export default {
       formData.append('lyrics', this.formData.lyrics);
       formData.append('duration', this.formData.duration);
       formData.append('file', this.formData.file);
+      formData.append('selectedAlbumId', this.formData.selectedAlbumId);
 
       try {
         const response = await fetch('/upload', {
@@ -53,6 +62,25 @@ export default {
         console.error('Error:', error);
         this.message = 'An error occurred. Please try again.';
       }
-    }
+    },
+    async fetchAlbums() {
+      try {
+        const response = await fetch('/api/get_user_albums', {
+          headers: {
+            'Authentication-Token': localStorage.getItem('auth-token')
+          }
+        });
+        if (response.ok) {
+          this.albums = await response.json();
+        } else {
+          throw new Error('Failed to fetch albums');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  },
+  created() {
+    this.fetchAlbums();
   }
 }

@@ -10,17 +10,23 @@ export default {
         <li class="nav-item" v-if="is_login" style="float: right">
           <router-link class="nav-link" to="/">Home</router-link>
           </li>
+          <li class="nav-item" v-if="is_login" style="float: right">
+          <router-link class="nav-link" to="/my-albums">My Playlist</router-link>
+          </li>
+          <li class="nav-item" v-if="is_login" style="float: right">
+          <router-link class="nav-link" to="/all-songs">All Songs</router-link>
+          </li>
+          <li class="nav-item" v-if="is_login" style="float: right">
+          <router-link class="nav-link" to="/search">Search</router-link>
+          </li>
           <li class="nav-item" v-if="role=='creator'">
           <router-link class="nav-link" to="/song-add">Add New Song</router-link>
           </li>
           <li class="nav-item" v-if="role=='admin'">
           <router-link class="nav-link" to="/users">All Users</router-link>
           </li>
-          <li class="nav-item" v-if="is_login" style="float: right">
-          <router-link class="nav-link" to="/search">Search</router-link>
-          </li>
-          <li class="nav-item" v-if="is_login" style="float: right">
-          <router-link class="nav-link" to="/my-albums">My Albums</router-link>
+          <li class="nav-item" v-if="role === 'admin' || role === 'creator'">
+          <router-link class="nav-link" to="/song_management">Music Management</router-link>
           </li>
           <li class="nav-item" v-if="is_login" style="float: right">
           <button class="nav-link" @click='logout' > Logout </button>
