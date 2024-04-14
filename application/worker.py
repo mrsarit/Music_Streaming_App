@@ -1,6 +1,7 @@
 from celery import Celery, Task
 from celery.schedules import crontab
 from application.tasks import send_visit_reminder
+from application.tasks import generate_monthly_activity_report
 
 def celery_init_app(app):
     class FlaskTask(Task):
@@ -15,5 +16,9 @@ def celery_init_app(app):
         'task': 'application.tasks.send_visit_reminder',
         'schedule': crontab(hour=12, minute=26),  # Daily at 6:00 PM
     },
+        'generate-monthly-report': {
+            'task': 'application.tasks.generate_monthly_activity_report',
+            'schedule': crontab(day_of_month=14, hour=15, minute=17),  # Monthly on the first day at midnight
+        },
 }
     return celery_app

@@ -9,4 +9,8 @@ beat_schedule = {
         'task': 'task.send_visit_reminder',
         'schedule': crontab(hour=12, minute=26),  # Daily at 6:00 PM
     },
+    'generate-monthly-report': {
+        'task': 'task.generate_monthly_activity_report',
+        'schedule': crontab(day_of_month=14, hour=15, minute=17),  # Monthly on the first day at midnight
+    },
 }
