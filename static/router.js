@@ -8,6 +8,7 @@ import PlayDirect from "./components/PlayDirect.js"
 import UserAlbums from "./components/UserAlbums.js"
 import Search from "./components/Search.js"
 import SongManagement from "./components/SongManagement.js"
+import CRUD from "./components/CRUD.js"
 const routes = [
      {path:'/', component: home},
     {path:'/login', component: Login, name: 'Login'},
@@ -18,7 +19,8 @@ const routes = [
     {path: '/all-songs', component: PlayDirect,},
     {path: '/my-albums', component: UserAlbums,},
     {path: '/search', component: Search,},
-    {path: '/song_management', component: SongManagement,}
+    {path: '/song_management', component: SongManagement,},
+    {path: '/crud', component: CRUD,}
 
 ]
 export default new VueRouter({

@@ -76,21 +76,11 @@ def upload_file():
    ext = split_filename[ext_pos]
    file.save(f"uploads/{new_filename}.{ext}")
    song_resource = Song(name=request.form['name'], lyrics=request.form['lyrics'],duration=request.form['duration'],creator_id=current_user.id, \
-                        music_file=f"uploads/{new_filename}.{ext}", album_id=request.form['selectedAlbumId'])
+                        music_file=f"uploads/{new_filename}.{ext}", album_id=request.form['selectedAlbumId'], \
+                            genre=request.form['selectedGenreId'],lang=request.form['selectedLanguageId'],artist=request.form['selectedArtistId'],)
    db.session.add(song_resource)
    db.session.commit()
    return {"message": "Song added Successfully"}
-
-# @app.route('/play_song/<int:song_id>')
-# @auth_required("token")
-# def play_song(song_id):
-#     song = Song.query.get(song_id)
-#     if not song:
-#         return jsonify({"message": "Song not found"}), 404
-
-#     music_file_path = song.music_file
-#     return send_file(music_file_path, as_attachment=True)
-
 @app.route('/api/get_song')
 @auth_required("token")
 def get_songs():
@@ -281,11 +271,17 @@ def get_creator_songs():
         songs = Song.query.filter_by(creator=current_user).all()
     serialized_songs = []
     for song in songs:
+        print
         serialized_songs.append({
             'id': song.id,
             'name': song.name,
             'lyrics': song.lyrics,
             'duration': song.duration,
+            'album': song.album_id,
+            'artist': song.artist,
+            'lang': song.lang,
+            'genre': song.genre,
+
         })
     return jsonify(serialized_songs)
 @app.route('/api/delete_song/<int:song_id>', methods=['DELETE'])
@@ -305,10 +301,14 @@ def edit_song(song_id):
     song = Song.query.get(song_id)
     if not song:
         return jsonify({'error': 'Song not found'}), 404
-    data = request.get_json()
+    data = request.json
     song.name = data.get('name', song.name)
     song.lyrics = data.get('lyrics', song.lyrics)
     song.duration = data.get('duration', song.duration)
+    song.album_id = data.get('album', song.album_id)
+    song.artist = data.get('artist', song.artist)
+    song.lang = data.get('lang', song.lang)
+    song.genre = data.get('genre', song.genre)
     db.session.commit()
 
     return jsonify({'message': 'Song updated successfully'}), 200
@@ -420,3 +420,111 @@ def update_last_visit():
     db.session.commit()
 
     return jsonify({"message": "Last visit updated"})
+# Create
+@app.route('/create-genre', methods=['POST'])
+@auth_required("token")
+@roles_required("admin")
+def create_genre():
+    data = request.get_json()
+    new_genre = Genre(name= data)
+    db.session.add(new_genre)
+    db.session.commit()
+    return jsonify({'message': 'Genre created successfully'}), 201
+
+@app.route('/add-language', methods=['POST'])
+@auth_required("token")
+@roles_required("admin")
+def create_language():
+    data = request.get_json()
+    new_language = Language(name=data)
+    db.session.add(new_language)
+    db.session.commit()
+    return jsonify({'message': 'Language created successfully'}), 201
+
+@app.route('/add-artist', methods=['POST'])
+@auth_required("token")
+@roles_required("admin")
+def create_artist():
+    data = request.get_json()
+    new_artist = Artist(name=data)
+    db.session.add(new_artist)
+    db.session.commit()
+    return jsonify({'message': 'Artist created successfully'}), 201
+
+# Read [{'id': song.id, 'name': song.name} for song in songs[::-1]]
+@app.route('/genres', methods=['GET'])
+@auth_required("token")
+def get_genres():
+    genres = Genre.query.all()
+    return jsonify([{'id': genre.id, 'name': genre.name} for genre in genres])
+
+@app.route('/languages', methods=['GET'])
+@auth_required("token")
+def get_languages():
+    languages = Language.query.all()
+    return jsonify([{'id': language.id, 'name': language.name} for language in languages])
+
+@app.route('/artists', methods=['GET'])
+@auth_required("token")
+def get_artists():
+    artists = Artist.query.all()
+    return jsonify([{'id': artist.id, 'name': artist.name} for artist in artists])
+
+# Update
+@app.route('/genre/<int:id>', methods=['PUT'])
+@auth_required("token")
+@roles_required("admin")
+def update_genre(id):
+    genre = Genre.query.get(id)
+    data = request.get_json()
+    genre.name = data['name']
+    db.session.commit()
+    return jsonify({'message': 'Genre updated successfully'})
+
+@app.route('/language/<int:id>', methods=['PUT'])
+@auth_required("token")
+@roles_required("admin")
+def update_language(id):
+    language = Language.query.get(id)
+    data = request.get_json()
+    language.name = data['name']
+    db.session.commit()
+    return jsonify({'message': 'Language updated successfully'})
+
+@app.route('/artist/<int:id>', methods=['PUT'])
+@auth_required("token")
+@roles_required("admin")
+def update_artist(id):
+    artist = Artist.query.get(id)
+    data = request.get_json()
+    artist.name = data['name']
+    db.session.commit()
+    return jsonify({'message': 'Artist updated successfully'})
+
+# Delete
+@app.route('/genre/<int:id>', methods=['DELETE'])
+@auth_required("token")
+@roles_required("admin")
+def delete_genre(id):
+    genre = Genre.query.get(id)
+    db.session.delete(genre)
+    db.session.commit()
+    return jsonify({'message': 'Genre deleted successfully'})
+
+@app.route('/language/<int:id>', methods=['DELETE'])
+@auth_required("token")
+@roles_required("admin")
+def delete_language(id):
+    language = Language.query.get(id)
+    db.session.delete(language)
+    db.session.commit()
+    return jsonify({'message': 'Language deleted successfully'})
+
+@app.route('/artist/<int:id>', methods=['DELETE'])
+@auth_required("token")
+@roles_required("admin")
+def delete_artist(id):
+    artist = Artist.query.get(id)
+    db.session.delete(artist)
+    db.session.commit()
+    return jsonify({'message': 'Artist deleted successfully'})

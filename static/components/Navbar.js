@@ -25,6 +25,9 @@ export default {
           <li class="nav-item" v-if="role=='admin'">
           <router-link class="nav-link" to="/users">All Users</router-link>
           </li>
+          <li class="nav-item" v-if="role=='admin'">
+          <router-link class="nav-link" to="/crud">Add Meta data</router-link>
+          </li>
           <li class="nav-item" v-if="role === 'admin' || role === 'creator'">
           <router-link class="nav-link" to="/song_management">Music Management</router-link>
           </li>

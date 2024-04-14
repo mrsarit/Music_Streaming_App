@@ -41,6 +41,10 @@ class Song(db.Model):
     is_approved = db.Column(db.Boolean(), default=False)
     music_file = db.Column(db.String, nullable=False)
     album_id = db.Column(db.Integer, db.ForeignKey('song_album.id'), nullable=False)
+    genre = db.Column(db.Integer, db.ForeignKey('genre.id'), nullable=False)
+    artist = db.Column(db.Integer, db.ForeignKey('artist.id'), nullable=False)
+    lang = db.Column(db.Integer, db.ForeignKey('language.id'), nullable=False)
+
 class Album(db.Model): 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
@@ -64,3 +68,12 @@ class SongAlbum(db.Model):
     genre = db.Column(db.String(255))
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     songs = db.relationship('Song', backref='song_album', lazy=True)
+class Genre(db.Model): 
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+class Language(db.Model): 
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+class Artist(db.Model): 
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True)

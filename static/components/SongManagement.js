@@ -37,6 +37,22 @@ export default {
               <textarea id="editedSongLyrics" v-model="editedSongLyrics"></textarea><br>
               <label for="editedSongDuration">Duration:</label>
               <input type="text" id="editedSongDuration" v-model="editedSongDuration"><br>
+              <label for="name">Album:</label>
+              <select v-model="selectedAlbumId">
+                <option v-for="album in albums" :key="album.id" :value="album.id">{{ album.name }}</option>
+              </select>
+              <label for="name">Artist:</label>
+            <select v-model="selectedArtistId">
+              <option v-for="artist in artists" :key="artist.id" :value="artist.id">{{ artist.name }}</option>
+            </select>
+            <label for="name">Language:</label>
+          <select v-model="selectedLanguageId">
+            <option v-for="language in languages" :key="language.id" :value="language.id">{{ language.name }}</option>
+          </select>
+          <label for="name">Genre:</label>
+          <select v-model="selectedGenreId">
+            <option v-for="genre in genres" :key="genre.id" :value="genre.id">{{ genre.name }}</option>
+          </select>
               <button @click="saveEditedSong">Save</button>
             </div>
       </div>
@@ -44,7 +60,7 @@ export default {
       <div class="col-md-6">
         <h2>Create Album</h2>
         <form @submit.prevent="createAlbum">
-          <label for="albumName">Album Name:</label>
+          <label for="albumName">Album:</label>
           <input type="text" id="albumName" v-model="albumName" required>
           <button type="submit">Create Album</button>
         </form>
@@ -65,11 +81,24 @@ export default {
       averageRating: null,
       selectedRating: null,
       lyrics: null,
-      albumName: null
+      albumName: null,
+      albums: [],
+      selectedAlbumId: null,
+      genres: [],
+      selectedGenreId: null,
+      artists: [],
+      selectedArtistId: null,
+      languages: [],
+      selectedLanguageId: null,
     };
   },
   mounted() {
     this.fetchSongs();
+    this.fetchAlbums();
+    this.fetchArtists();
+    this.fetchGenres();
+    this.fetchLanguages();
+
   },
   methods: {
     async fetchSongs() {
@@ -174,9 +203,14 @@ export default {
         this.editedSongLyrics = song.lyrics;
         this.editedSongDuration = song.duration;
         this.selectedSongId = song.id;
+        this.selectedAlbumId = song.album;
+        this.selectedArtistId = song.artist;
+        this.selectedLanguageId = song.lang;
+        this.selectedGenreId = song.genre;
       },
       async saveEditedSong() {
         try {
+          console.log(this.selectedAlbumId)
           const response = await fetch(`/api/edit_song/${this.selectedSongId}`, {
             method: 'PUT',
             headers: {
@@ -186,7 +220,12 @@ export default {
             body: JSON.stringify({
               name: this.editedSongName,
               lyrics: this.editedSongLyrics,
-              duration: this.editedSongDuration
+              duration: this.editedSongDuration,
+              album: this.selectedAlbumId,
+              artist: this.selectedArtistId,
+              lang: this.selectedLanguageId,
+              genre: this.selectedGenreId,
+
             })
           });
   
@@ -223,6 +262,71 @@ export default {
           console.error(error);
         }
       },
+      
+    async fetchAlbums() {
+      try {
+        const response = await fetch('/api/get_user_albums', {
+          headers: {
+            'Authentication-Token': localStorage.getItem('auth-token')
+          }
+        });
+        if (response.ok) {
+          this.albums = await response.json();
+        } else {
+          throw new Error('Failed to fetch albums');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async fetchLanguages() {
+      try {
+        const response = await fetch('/languages', {
+          headers: {
+            'Authentication-Token': localStorage.getItem('auth-token')
+          }
+        });
+        if (response.ok) {
+          this.languages = await response.json();
+        } else {
+          throw new Error('Failed to fetch albums');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async fetchGenres() {
+      try {
+        const response = await fetch('/genres', {
+          headers: {
+            'Authentication-Token': localStorage.getItem('auth-token')
+          }
+        });
+        if (response.ok) {
+          this.genres = await response.json();
+        } else {
+          throw new Error('Failed to fetch albums');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async fetchArtists() {
+      try {
+        const response = await fetch('/artists', {
+          headers: {
+            'Authentication-Token': localStorage.getItem('auth-token')
+          }
+        });
+        if (response.ok) {
+          this.artists = await response.json();
+        } else {
+          throw new Error('Failed to fetch albums');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    },
     }
   }
   
