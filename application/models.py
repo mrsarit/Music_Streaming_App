@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import UserMixin, RoleMixin
+from datetime import datetime
 db = SQLAlchemy()
 
 class RolesUsers(db.Model):
@@ -24,6 +25,7 @@ class User(db.Model, UserMixin):
     roles = db.relationship('Role', secondary='roles_users',
                          backref=db.backref('users', lazy='dynamic'))
     music_resource = db.relationship('Song', backref='creator')
+    last_visit = db.Column(db.DateTime, default=datetime.utcnow)
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)
@@ -62,4 +64,3 @@ class SongAlbum(db.Model):
     genre = db.Column(db.String(255))
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     songs = db.relationship('Song', backref='song_album', lazy=True)
-

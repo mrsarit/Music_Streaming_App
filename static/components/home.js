@@ -31,5 +31,10 @@ export default{
         } else {
             alert(data.message)
         }
+        const resp = await fetch('/api/last_visit', {
+            headers: {
+                'Authentication-Token': this.token
+            }
+        })
     },
 }

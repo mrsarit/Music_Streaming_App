@@ -10,6 +10,7 @@ from datetime import datetime
 from sqlalchemy import desc, text
 from sqlalchemy import or_
 from sqlalchemy import func
+import pytz
 
 
 @app.route('/')
@@ -411,3 +412,11 @@ def get_user_song_albums():
             'name': album.name,
         })
     return jsonify(album_list)
+@app.route('/api/last_visit')
+@auth_required("token")
+def update_last_visit():
+    user = User.query.get(current_user.id)
+    user.last_visit = datetime.now(pytz.timezone('Asia/Kolkata'))
+    db.session.commit()
+
+    return jsonify({"message": "Last visit updated"})
