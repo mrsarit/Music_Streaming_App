@@ -12,8 +12,11 @@ export default{
         <div class="col-md-6">
           <div class="mb-3 p-5 bg-light">
           <div v-if="title"> Title: {{title}}</div>
+          <div v-if="album"> Album: {{album}}</div>
+          <div v-if="artist"> Singer: {{artist}}</div>
+          <div v-if="lang"> Language: {{lang}}</div>
+          <div v-if="genre"> Genre: {{genre}}</div>
           <div v-if="creator"> Creator: {{creator}}</div>
-          <div v-if="lyrics"> Lyrics: {{lyrics}}</div>
           <div v-if="average_rating"> Average Rating: {{ average_rating }}</div>
             <audio ref="audioPlayer" controls></audio>
             <div>
@@ -45,11 +48,16 @@ export default{
       title: null,
       creator: null,
       lyrics: null,
+      album: null,
       albumName: '',
       selectedSongs: [],
       average_rating: null,
       song_id: null,
       selectedRating:null,
+      artist: null,
+      genre: null,
+      lang: null
+
     };
   },
   methods: {
@@ -97,6 +105,10 @@ export default{
           this.average_rating = data1.average_rating
           this.song_id = data1.id
           this.selectedRating = data1.current_user_rating
+          this.album - data1.album
+          this.artist = data1.artist
+          this.genre = data1.genre
+          this.lang = data1.lang
           
           // Find the index of the current song
           this.currentSongIndex = this.songs.findIndex(song => song.id === songId);

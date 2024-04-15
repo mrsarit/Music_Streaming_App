@@ -3,9 +3,7 @@ import AdminHome from './AdminHome.js'
 import CreatorHome from './CreatorHome.js'
 export default{
     template: `<div> 
-    <UserHome v-if="userRole=='user'"/>
-    <AdminHome v-if="userRole=='admin'"/>
-    <CreatorHome v-if="userRole=='creator'"/>
+    <UserHome />
     </div>`,
     data() {
     return {

@@ -103,6 +103,7 @@ def get_song(song_id):
     current_user_rating = None
     if current_user.is_authenticated:
         current_user_rating_obj = Rating.query.filter_by(song_id=song_id, user_id=current_user.id).first()
+        album = SongAlbum.query.get(song.album_id)
         if current_user_rating_obj:
             current_user_rating = current_user_rating_obj.rating
 
@@ -111,8 +112,12 @@ def get_song(song_id):
         'name': song.name,
         'creator': creator.username,
         'lyrics': song.lyrics,
+        'album' : album.name,
+        'artist' : Artist.query.get(song.artist).name,
+        'genre' : Genre.query.get(song.genre).name,
+        'lang' : Language.query.get(song.lang).name,
         'average_rating': average_rating or 0,  # Set to 0 if average_rating is None
-        'current_user_rating': current_user_rating
+        'current_user_rating': current_user_rating,
     })
 
 @app.route('/api/play_song/<int:song_id>')
@@ -528,3 +533,83 @@ def delete_artist(id):
     db.session.delete(artist)
     db.session.commit()
     return jsonify({'message': 'Artist deleted successfully'})
+
+@app.route('/api/get_album')
+@auth_required("token")
+def get_album():
+    albums = SongAlbum.query.all()
+    album_list = [{'id': album.id, 'name': album.name, 'creator' : User.query.get(album.creator_id).username} for album in albums[::-1]]
+    return jsonify(album_list)
+
+@app.route('/api/album_songs/<int:album_id>')
+@auth_required("token")
+def get_album_songs(album_id):
+    album = SongAlbum.query.get(album_id)
+    if not album:
+        return jsonify({'error': 'Album not found'}), 404
+
+    songs = album.songs
+    serialized_songs = []
+    for song in songs:
+        serialized_songs.append({
+            'id': song.id,
+            'name': song.name,
+            'lyrics': song.lyrics,
+            'duration': song.duration,
+            'artist': Artist.query.get(song.artist).name,
+            'genre': Genre.query.get(song.genre).name,
+            'lang': Language.query.get(song.lang).name,
+        })
+
+    return jsonify({
+        'albumName': album.name,
+        'songs': serialized_songs
+    })
+@app.route('/api/lang_songs/<int:lang_id>')
+@auth_required("token")
+def get_lang_songs(lang_id):
+    album = Language.query.get(lang_id)
+    if not album:
+        return jsonify({'error': 'Language not found'}), 404
+
+    songs = Song.query.filter_by(lang=lang_id).all()
+    serialized_songs = []
+    for song in songs:
+        serialized_songs.append({
+            'id': song.id,
+            'name': song.name,
+            'lyrics': song.lyrics,
+            'duration': song.duration,
+            'artist': Artist.query.get(song.artist).name,
+            'genre': Genre.query.get(song.genre).name,
+            'lang': Language.query.get(song.lang).name,
+        })
+
+    return jsonify({
+        'albumName': album.name,
+        'songs': serialized_songs
+    })
+@app.route('/api/genre_songs/<int:genre_id>')
+@auth_required("token")
+def get_genre_songs(genre_id):
+    album = Genre.query.get(genre_id)
+    if not album:
+        return jsonify({'error': 'Genre not found'}), 404
+
+    songs = Song.query.filter_by(genre=genre_id).all()
+    serialized_songs = []
+    for song in songs:
+        serialized_songs.append({
+            'id': song.id,
+            'name': song.name,
+            'lyrics': song.lyrics,
+            'duration': song.duration,
+            'artist': Artist.query.get(song.artist).name,
+            'genre': Genre.query.get(song.genre).name,
+            'lang': Language.query.get(song.lang).name,
+        })
+
+    return jsonify({
+        'albumName': album.name,
+        'songs': serialized_songs
+    })

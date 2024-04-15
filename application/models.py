@@ -68,6 +68,7 @@ class SongAlbum(db.Model):
     genre = db.Column(db.String(255))
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     songs = db.relationship('Song', backref='song_album', lazy=True)
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
 class Genre(db.Model): 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True)

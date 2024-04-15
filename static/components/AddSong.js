@@ -11,19 +11,19 @@ export default {
       <label for="duration">Duration:</label>
       <input type="text" id="duration" v-model="formData.duration" required><br><br>
       <label for="name">Album:</label>
-      <select v-model="selectedAlbumId">
+      <select v-model="formData.selectedAlbumId">
         <option v-for="album in albums" :key="album.id" :value="album.id">{{ album.name }}</option>
       </select>
       <label for="name">Artist:</label>
-    <select v-model="selectedArtistId">
+    <select v-model="formData.selectedArtistId">
       <option v-for="artist in artists" :key="artist.id" :value="artist.id">{{ artist.name }}</option>
     </select>
     <label for="name">Language:</label>
-  <select v-model="selectedLanguageId">
+  <select v-model="formData.selectedLanguageId">
     <option v-for="language in languages" :key="language.id" :value="language.id">{{ language.name }}</option>
   </select>
   <label for="name">Genre:</label>
-  <select v-model="selectedGenreId">
+  <select v-model="formData.selectedGenreId">
     <option v-for="genre in genres" :key="genre.id" :value="genre.id">{{ genre.name }}</option>
   </select>
       <label for="file">Select File:</label>

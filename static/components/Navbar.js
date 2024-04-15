@@ -17,6 +17,9 @@ export default {
           <router-link class="nav-link" to="/all-songs">All Songs</router-link>
           </li>
           <li class="nav-item" v-if="is_login" style="float: right">
+          <router-link class="nav-link" to="/all-albums">All Albums</router-link>
+          </li>
+          <li class="nav-item" v-if="is_login" style="float: right">
           <router-link class="nav-link" to="/search">Search</router-link>
           </li>
           <li class="nav-item" v-if="role=='creator'">
